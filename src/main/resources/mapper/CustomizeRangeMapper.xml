@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.hzero.platform.infra.mapper.CustomizeRangeMapper">
+
+    <select id="selectRange" resultType="org.hzero.platform.domain.entity.CustomizeRange">
+        <bind name="lang" value="@io.choerodon.mybatis.helper.LanguageHelper@language()"/>
+        select
+            hcr.range_id,
+            hcr.tenant_id,
+            hcr.enabled_flag,
+            hcr.description,
+            hcr.object_version_number,
+            ht.tenant_num,
+            httl.tenant_name
+        from hpfm_customize_range hcr
+        join hpfm_tenant ht on hcr.tenant_id = ht.tenant_id
+        LEFT JOIN hpfm_tenant_tl httl ON ht.tenant_id = httl.tenant_id AND httl.lang = #{lang}
+        <where>
+            <if test="rangeId != null">
+                and hcr.range_id = #{rangeId}
+            </if>
+            <if test="tenantId != null">
+                and hcr.tenant_id = #{tenantId}
+            </if>
+            <if test="description != null and description != ''">
+                <bind name="descriptionLike" value="'%' + description + '%'"/>
+                and hcr.description like #{descriptionLike}
+            </if>
+        </where>
+        order by hcr.range_id desc
+    </select>
+
+    <select id="selectRangePoints" resultType="org.hzero.platform.domain.entity.CustomizeRangePoint">
+        select
+            hcrp.range_point_id,
+            hcrp.range_id,
+            hcrp.service_name,
+            hcrp.package_name,
+            hcrp.class_name,
+            hcrp.method_name,
+            hcrp.method_args,
+            hcrp.object_version_number
+        from hpfm_customize_range hcr
+        join hpfm_customize_range_point hcrp on hcrp.range_id = hcr.range_id
+        where hcr.range_id = #{rangeId}
+        order by service_name, package_name, class_name, method_name
+    </select>
+
+    <select id="selectRangeRules" resultType="org.hzero.platform.domain.entity.CustomizeRangeRule">
+        select
+            hcrr.range_rule_id,
+            hcr.range_id,
+            hcre.rule_id,
+            hcre.rule_code,
+            hcre.rule_name,
+            hcre.description,
+            hcre.enabled_flag,
+            hcrr.object_version_number
+        from hpfm_customize_range hcr
+        join hpfm_customize_range_rule hcrr on hcr.range_id = hcrr.range_id
+        join hpfm_customize_rule hcre on hcre.rule_id = hcrr.rule_id
+        where hcr.range_id = #{rangeId}
+    </select>
+
+</mapper>

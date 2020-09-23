@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.hzero.platform.infra.mapper.DatasourceServiceMapper">
+    <select id="selectDatasourceService" resultType="org.hzero.platform.domain.entity.DatasourceService">
+        SELECT
+            hds.datasource_service_id,
+            hds.service_name,
+            hds.datasource_id,
+            hds.object_version_number,
+            hd.datasource_code,
+            hd.description,
+            hd.datasource_url,
+            hd.username
+        FROM
+            hpfm_datasource_service hds LEFT JOIN
+            hpfm_datasource hd ON hds.datasource_id = hd.datasource_id
+        <where>
+            <if test="datasourceId != null ">
+                AND hds.datasource_id = #{datasourceId}
+            </if>
+            <if test="serviceName != null and serviceName != ''">
+                <bind name="serviceNameLike" value="'%' + serviceName + '%'"/>
+                AND hds.service_name LIKE #{serviceNameLike}
+            </if>
+        </where>
+    </select>
+    <select id="selectServiceNamesByDatasourceId" resultType="java.lang.String">
+        SELECT
+            service_name
+        FROM
+            hpfm_datasource_service
+        WHERE
+            datasource_id = #{datasourceId}
+    </select>
+</mapper>

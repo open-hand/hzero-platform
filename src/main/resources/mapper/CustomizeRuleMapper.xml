@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.hzero.platform.infra.mapper.CustomizeRuleMapper">
+
+    <sql id="BaseColumn">
+        hcr.rule_id,
+        hcr.rule_code,
+        hcr.rule_name,
+        hcr.tenant_id,
+        hcr.type_code,
+        hcr.type_value,
+        hcr.rule_position,
+        hcr.sync_flag,
+        hcr.enabled_flag,
+        hcr.description,
+        hcr.object_version_number
+    </sql>
+
+    <select id="selectRule" resultType="org.hzero.platform.domain.entity.CustomizeRule">
+        <bind name="lang" value="@io.choerodon.mybatis.helper.LanguageHelper@language()"/>
+        select
+            <include refid="BaseColumn" />,
+            ht.tenant_num,
+            httl.tenant_name
+        from hpfm_customize_rule hcr
+        join hpfm_tenant ht on hcr.tenant_id = ht.tenant_id
+        LEFT JOIN hpfm_tenant_tl httl ON ht.tenant_id = httl.tenant_id AND httl.lang = #{lang}
+        <where>
+            <if test="ruleId != null">
+                and hcr.rule_id = #{ruleId}
+            </if>
+            <if test="tenantId != null">
+                and hcr.tenant_id = #{tenantId}
+            </if>
+            <if test="ruleCode != null and ruleCode != ''">
+                <bind name="ruleCodeLike" value="'%' + ruleCode + '%'"/>
+                and hcr.rule_code like #{ruleCodeLike}
+            </if>
+            <if test="ruleName != null and ruleName != ''">
+                <bind name="ruleNameLike" value="'%' + ruleName + '%'"/>
+                and hcr.rule_name like #{ruleNameLike}
+            </if>
+            <if test="tenantId != null">
+                and hcr.tenant_id = #{tenantId}
+            </if>
+            <if test="excludeRangeId != null">
+                and not exists (
+                    select 1
+                    from hpfm_customize_range_rule hcrr
+                    where hcrr.range_id = #{excludeRangeId}
+                    and hcrr.rule_id = hcr.rule_id
+                )
+            </if>
+        </where>
+        order by hcr.rule_id desc
+    </select>
+
+    <select id="selectRuleDetail" resultType="org.hzero.platform.domain.entity.CustomizeRule">
+        <bind name="lang" value="@io.choerodon.mybatis.helper.LanguageHelper@language()"/>
+        select
+            <include refid="BaseColumn" />,
+            hcr.type_value,
+            ht.tenant_num,
+            httl.tenant_name
+        from hpfm_customize_rule hcr
+        join hpfm_tenant ht on hcr.tenant_id = ht.tenant_id
+        LEFT JOIN hpfm_tenant_tl httl ON ht.tenant_id = httl.tenant_id AND httl.lang = #{lang}
+        where hcr.rule_id = #{ruleId}
+    </select>
+
+</mapper>

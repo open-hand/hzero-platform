@@ -1,0 +1,133 @@
+# Default values for hzero-platform.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: registry.choerodon.com.cn/hzero-hzero/hzero-platform
+  pullPolicy: Always
+
+preJob:
+  image: registry.cn-hangzhou.aliyuncs.com/choerodon-tools/dbtool:0.6.2
+  timeout: 120
+  preInitDB:
+    enable: false
+    datasource:
+      url: jdbc:mysql://db.hzero.org:3306/hzero_platform?useUnicode=true&characterEncoding=utf-8&useSSL=false
+      username: hzero
+      password: hzero
+
+env:
+  open:
+    # Eureka 注册中心地址
+    EUREKA_DEFAULT_ZONE: http://dev.hzero.org:8000/eureka/
+    # 服务以IP地址注册
+    EUREKA_INSTANCE_PREFER_IP_ADDRESS: true
+    # 是否启用配置中心
+    SPRING_CLOUD_CONFIG_ENABLED: false
+    # 配置标签
+    SPRING_CLOUD_CONFIG_LABEL: 
+    # 配置中心地址
+    SPRING_CLOUD_CONFIG_URI: http://dev.hzero.org:8010/
+    # 数据库地址
+    SPRING_DATASOURCE_URL: jdbc:mysql://db.hzero.org:3306/hzero_platform?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    # 数据库用户名
+    SPRING_DATASOURCE_USERNAME: hzero
+    # 数据库密码
+    SPRING_DATASOURCE_PASSWORD: hzero
+    # 连接池最小空闲连接数
+    SPRING_DATASOURCE_MINIMUM_IDLE: 20
+    # 连接池允许的最大连接数
+    SPRING_DATASOURCE_MAXIMUM_POOL_SIZE: 200
+    # 等待连接池分配连接的最大时长（毫秒）
+    SPRING_DATASOURCE_CONNECTION_TIMEOUT: 30000
+    # Redis host
+    SPRING_REDIS_HOST: redis.hzero.org
+    # Redis port
+    SPRING_REDIS_PORT: 6379
+    # Redis DB
+    SPRING_REDIS_DATABASE: 1
+    # 资源池中最大连接数
+    # 默认8，-1表示无限制；可根据服务并发redis情况及服务端的支持上限调整
+    SPRING_REDIS_POOL_MAX_ACTIVE: 50
+    # 资源池运行最大空闲的连接数
+    # 默认8，-1表示无限制；可根据服务并发redis情况及服务端的支持上限调整，一般建议和max-active保持一致，避免资源伸缩带来的开销
+    SPRING_REDIS_POOL_MAX_IDLE: 50
+    # 当资源池连接用尽后，调用者的最大等待时间(单位为毫秒)
+    # 默认 -1 表示永不超时，设置5秒
+    SPRING_REDIS_POOL_MAX_WAIT: 5000
+    # 设置IO线程数, 它主要执行非阻塞的任务,它们会负责多个连接
+    # 默认值为8，建议设置每个CPU核心一个线程
+    SERVER_UNDERTOW_IO_THREADS: 4
+    # 阻塞任务线程池, 当执行类似servlet请求阻塞操作, undertow会从这个线程池中取得线程
+    # 默认等于 io-threads*8，它的值设置取决于系统的负载，可适当调大该值 
+    SERVER_UNDERTOW_WORKER_THREADS: 128
+    # 每块buffer的空间大小，越小空间被利用越充分
+    # 不要设置太大，以免影响其他应用，合适即可
+    SERVER_UNDERTOW_BUFFER_SIZE: 1024
+    # Hystrix 熔断超时时间
+    HYSTRIX_COMMAND_TIMEOUT_IN_MILLISECONDS: 40000
+    # Ribbon 读取超时时间
+    RIBBON_READ_TIMEOUT: 30000
+    # Ribbon 连接超时时间
+    RIBBON_CONNECT_TIMEOUT: 3000
+    # 是否开启SQL类型LOV
+    HZERO_LOV_SQL_ENABLED: true
+    # 是否开启LOV值翻译
+    HZERO_LOV_VALUE_ENABLED: true
+    # 是否启动初始化缓存
+    HZERO_PLATFORM_INIT_CACHE: true
+    # 平台HTTP协议
+    HZERO_PLATFORM_HTTP_PROTOCOL: http
+    # 数据库默认OWNER，MSSQL数据库可能需要
+    HZERO_DB_OWNER:
+    # 是否开启实体类的注册
+    HZERO_REGIST_ENTITY_ENABLE: false
+    # 全局RSA公钥
+    HZERO_OAUTH_PASSWORD_PUBLIC_KEY: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJL0JkqsUoK6kt3JyogsgqNp9VDGDp+t3ZAGMbVoMPdHNT2nfiIVh9ZMNHF7g2XiAa8O8AQWyh2PjMR0NiUSVQMCAwEAAQ==
+    # 全局RSA私钥
+    HZERO_OAUTH_PASSWORD_PRIVATE_KEY: MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAkvQmSqxSgrqS3cnKiCyCo2n1UMYOn63dkAYxtWgw90c1Pad+IhWH1kw0cXuDZeIBrw7wBBbKHY+MxHQ2JRJVAwIDAQABAkB3TKXZcVP6tSSN0UgOjLPxng99Z4xvrWJ1jdHFB7TYyUDcnOtE6GkeeMGxtszYtuZ0m5rN9r8eRvIdVUciXbQhAiEA7WGcLd+cvHHA8xNFrbT78Aq4iYm0TVTS6m05ZEOS328CIQCeetcFV8Kdb+P2Y+yWvMtbyFGhROQIFizvxM3S3TiZrQIhAJLrYPB7f9SaSyOm/+89Htk4qXJmyjM6lrgFFgpaUGL9AiB+pkCr/mSDGOYfA+AQ3rPNl5rUvI9XfxFOVAMAntYayQIhAO0hrnwtng6Ubs+58BN69vAl+sd/xugf0jsHcNgZppAb
+    # 匹配的资源才会解析JwtToken便于得到UserDetails
+    HZERO_RESOURCE_PATTERN: /v1/*,/hzero/*,/hpfm/v1/*,/hpfm/hzero/*
+    # 销售员角色模板编码，继承自销售员角色模板的角色可获取到销售员角色模板上分配的卡片
+    HZERO_SALES_TEMPLATE_CODE: role/organization/default/template/sales
+    # 专家角色模板编码，继承自专家角色模板的角色可获取到专家角色模板上分配的卡片
+    HZERO_EXPERTS_TEMPLATE_CODE: role/organization/default/template/experts
+    # 生效配置
+    SPRING_PROFILES_ACTIVE: dev
+    # 日志级别
+    LOG_LEVEL: info
+    # JVM配置
+    JAVA_OPTS: >
+      -Xms1024m
+      -Xmx1536m
+metrics:
+  path: /actuator/prometheus
+  group: spring-boot
+
+logs:
+  parser: spring-boot
+
+persistence:
+  enabled: false
+
+service:
+  enabled: false
+  type: ClusterIP
+  port: 8100
+  name: hzero-platform
+deployment:
+  managementPort: 8101
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources,such as Minikube. If you do want to specify resources,uncomment the following
+  # lines,adjust them as necessary,and remove the curly braces after 'resources:'.
+  limits:
+    # cpu: 100m
+    memory: 1.7Gi
+  requests:
+    # cpu: 100m
+    memory: 1.2Gi

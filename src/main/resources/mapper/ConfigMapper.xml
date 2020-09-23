@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.hzero.platform.infra.mapper.ConfigMapper">
+
+    <select id="selectConfigByTenantId" resultType="org.hzero.platform.domain.entity.Config">
+        SELECT
+            hc.config_id,
+            hc.config_code,
+            hc.config_value,
+            hc.category,
+            hc.object_version_number,
+            hc.tenant_id
+        FROM
+            hpfm_config hc
+        WHERE
+            hc.tenant_id = #{tenantId}
+        UNION ALL
+        SELECT
+            hc.config_id,
+            hc.config_code,
+            hc.config_value,
+            hc.category,
+            hc.object_version_number,
+            hc.tenant_id
+        FROM
+            hpfm_config hc
+        WHERE
+            hc.tenant_id = 0
+        AND NOT EXISTS (
+            SELECT 1 FROM hpfm_config hco WHERE hc.config_code = hco.config_code AND hco.tenant_id = #{tenantId}
+        )
+    </select>
+</mapper>

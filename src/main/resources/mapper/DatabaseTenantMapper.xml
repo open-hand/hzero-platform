@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.hzero.platform.infra.mapper.DatabaseTenantMapper">
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap id="BaseResultMap" type="org.hzero.platform.domain.entity.DatabaseTenant">
+        <result column="database_tenant_id" property="databaseTenantId" jdbcType="DECIMAL"/>
+        <result column="database_id" property="databaseId" jdbcType="DECIMAL"/>
+        <result column="datasource_id" property="datasourceId" jdbcType="DECIMAL"/>
+        <result column="tenant_id" property="tenantId" jdbcType="DECIMAL"/>
+        <result column="object_version_number" property="objectVersionNumber" jdbcType="DECIMAL"/>
+        <result column="creation_date" property="creationDate" jdbcType="DATE"/>
+        <result column="created_by" property="createdBy" jdbcType="DECIMAL"/>
+        <result column="last_updated_by" property="lastUpdatedBy" jdbcType="DECIMAL"/>
+        <result column="last_update_date" property="lastUpdateDate" jdbcType="DATE"/>
+    </resultMap>
+
+    <select id="selectDatabaseTenant" resultType="org.hzero.platform.api.dto.DatabaseTenantDTO">
+        <bind name="lang" value="@io.choerodon.mybatis.helper.LanguageHelper@language()"/>
+        SELECT
+            hdr.database_tenant_id,
+            hdr.database_id,
+            hdr.tenant_id,
+            hdr.object_version_number,
+            httl.tenant_name,
+            ht.tenant_num
+        FROM
+            hpfm_database_tenant hdr
+        LEFT JOIN hpfm_tenant ht ON hdr.tenant_id = ht.tenant_id
+        LEFT JOIN hpfm_tenant_tl httl ON ht.tenant_id = httl.tenant_id AND httl.lang = #{lang}
+        <where>
+            <if test="databaseTenantId != null ">
+                AND hdr.database_tenant_id = #{databaseTenantId}
+            </if>
+            <if test="databaseId != null">
+                AND hdr.database_id = #{databaseId}
+            </if>
+            <if test="tenantId != null ">
+                AND hdr.tenant_id = #{tenantId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectTenantIdsByDatabaseId" resultType="java.lang.Long">
+        SELECT
+          tenant_id
+        FROM
+          hpfm_database_tenant
+        WHERE
+          database_id = #{databaseId}
+    </select>
+
+    <!-- 根据数据源ID删除租户数据库关系 -->
+    <delete id="removeByDatabaseId">
+        DELETE
+        FROM
+            hpfm_database_tenant
+        WHERE
+            database_id = #{databaseId}
+    </delete>
+</mapper>

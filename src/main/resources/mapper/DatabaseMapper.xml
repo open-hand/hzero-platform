@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.hzero.platform.infra.mapper.DatabaseMapper">
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap id="BaseResultMap" type="org.hzero.platform.domain.entity.Database">
+        <result column="database_id" property="databaseId" jdbcType="DECIMAL"/>
+        <result column="database_code" property="databaseCode" jdbcType="VARCHAR"/>
+        <result column="database_name" property="databaseName" jdbcType="VARCHAR"/>
+        <result column="datasource_id" property="datasourceId" jdbcType="DECIMAL"/>
+        <result column="enabled_flag" property="enabledFlag" jdbcType="DECIMAL"/>
+        <result column="object_version_number" property="objectVersionNumber" jdbcType="DECIMAL"/>
+        <result column="creation_date" property="creationDate" jdbcType="DATE"/>
+        <result column="created_by" property="createdBy" jdbcType="DECIMAL"/>
+        <result column="last_updated_by" property="lastUpdatedBy" jdbcType="DECIMAL"/>
+        <result column="last_update_date" property="lastUpdateDate" jdbcType="DATE"/>
+    </resultMap>
+
+    <select id="selectDatabase" parameterType="org.hzero.platform.api.dto.DatabaseDTO" resultType="org.hzero.platform.api.dto.DatabaseDTO">
+        SELECT
+            hd.database_id,
+            hd.database_code,
+            hd.database_name,
+            hds.datasource_id,
+            hds.datasource_code,
+            hd.enabled_flag,
+            hds.description,
+            hd.object_version_number,
+            hd.public_flag,
+            hd.table_prefix
+        FROM
+            hpfm_database hd LEFT JOIN
+            hpfm_datasource hds ON hd.datasource_id = hds.datasource_id
+        <where>
+            <if test="databaseId != null ">
+                AND hd.database_id = #{databaseId}
+            </if>
+            <if test="databaseCode != null and databaseCode != ''">
+                <bind name="databaseCodeLike" value="'%' + databaseCode + '%'"/>
+                AND hd.database_code LIKE #{databaseCodeLike}
+            </if>
+            <if test="databaseName != null and databaseName != ''">
+                <bind name="databaseNameLike" value="'%' + databaseName + '%'"/>
+                AND hd.database_name LIKE #{databaseNameLike}
+            </if>
+            <if test="datasourceCode != null and datasourceCode != ''">
+                <bind name="datasourceCodeLike" value="'%' + datasourceCode + '%'"/>
+                AND hds.datasource_code LIKE #{datasourceCodeLike}
+            </if>
+            <if test="datasourceId != null ">
+                AND hd.datasource_id = #{datasourceId}
+            </if>
+            <if test="enabledFlag != null ">
+                AND hd.enabled_flag = #{enabledFlag}
+            </if>
+        </where>
+    </select>
+    <select id="selectByDatasourceId" resultType="org.hzero.platform.domain.entity.Database">
+        SELECT
+            hd.database_id,
+            hd.database_code,
+            hd.database_name,
+            hd.datasource_id,
+            hd.enabled_flag,
+            hd.object_version_number,
+            hd.public_flag,
+            hd.table_prefix
+        FROM
+            hpfm_database hd
+        WHERE
+            hd.datasource_id = #{datasourceId}
+    </select>
+</mapper>
