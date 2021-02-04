@@ -50,12 +50,17 @@ public class DashboardRoleCardRepositoryImpl extends BaseRepositoryImpl<Dashboar
 
     @Override
     @ProcessLovValue
-    public List<DashboardRoleCard> selectCurrentRoleCards(Long roleId) {
-        return roleCardMapper.selectCurrentRoleCards(roleId);
+    public List<DashboardRoleCard> selectCurrentRoleCards(List<Long> roleIds) {
+        return roleCardMapper.selectCurrentRoleCards(roleIds);
     }
 
     @Override
     public Long selectRoleTenant(Long roleId) {
         return roleCardMapper.selectRoleTenant(roleId);
+    }
+
+    @Override
+    public List<Long> selectSubRoleIds(Long delCardRoleId, Long cardId) {
+        return roleCardMapper.selectSubRoleIds(delCardRoleId, cardId);
     }
 }

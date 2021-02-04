@@ -3,13 +3,17 @@
 <mapper namespace="org.hzero.platform.infra.mapper.CodeRuleDistMapper">
     <select id="selectCodeRuleDistList" parameterType="org.hzero.platform.domain.entity.CodeRuleDist"
             resultType="org.hzero.platform.api.dto.CodeRuleDistDTO">
+        <bind name="lang" value="@io.choerodon.mybatis.helper.LanguageHelper@language()"/>
         SELECT
             hcrd.rule_dist_id,
             hcrd.rule_id,
             hcrd.level_code,
             hcrd.description,
             hcrd.level_value,
-        ( SELECT meaning FROM hpfm_lov_value WHERE lov_code = 'HPFM.CODE_RULE.LEVEL_CODE' AND hcrd.level_code = VALUE ) level_code_description,
+        (   SELECT plvt.meaning
+            FROM hpfm_lov_value plv
+            JOIN hpfm_lov_value_tl plvt ON plvt.lov_value_id = plv.lov_value_id AND plvt.lang = #{lang}
+            WHERE lov_code = 'HPFM.CODE_RULE.LEVEL_CODE' AND hcrd.level_code = VALUE ) level_code_description,
         (
         CASE
             hcrd.level_code

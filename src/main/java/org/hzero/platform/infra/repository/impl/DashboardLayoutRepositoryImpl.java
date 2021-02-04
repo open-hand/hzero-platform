@@ -1,8 +1,12 @@
 package org.hzero.platform.infra.repository.impl;
 
 
-import io.choerodon.core.oauth.CustomUserDetails;
-import io.choerodon.core.oauth.DetailsHelper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.hzero.boot.platform.lov.annotation.ProcessLovValue;
 import org.hzero.mybatis.base.impl.BaseRepositoryImpl;
@@ -17,8 +21,8 @@ import org.hzero.platform.infra.properties.PlatformProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import io.choerodon.core.oauth.CustomUserDetails;
+import io.choerodon.core.oauth.DetailsHelper;
 
 /**
  * 工作台配置 资源库实现
@@ -63,23 +67,23 @@ public class DashboardLayoutRepositoryImpl extends BaseRepositoryImpl<DashboardL
     public List<DashboardLayoutVO> selectDashboardLayout() {
         CustomUserDetails userDetails = DetailsHelper.getUserDetails();
         // 查询当前用户下的布局信息
-        List<DashboardLayoutVO> resultList = layoutMapper.selectCurrentLayouts(userDetails.getUserId(), userDetails.getRoleId(), userDetails.getTenantId());
+        List<DashboardLayoutVO> resultList = layoutMapper.selectCurrentLayouts(userDetails.getUserId(), userDetails.roleMergeIds(), userDetails.getTenantId());
         if (CollectionUtils.isEmpty(resultList)) {
             // 无卡片配置信息，查询判断当前角色下是否存在初始化布局信息
             // FIX 2019-09-30 添加逻辑，初始化卡片不可删除
-            List<DashboardRoleCard> dashboardRoleCards = roleCardRepository.selectCurrentRoleCards(userDetails.getRoleId());
+            List<DashboardRoleCard> dashboardRoleCards = roleCardRepository.selectCurrentRoleCards(userDetails.roleMergeIds());
             if (CollectionUtils.isNotEmpty(dashboardRoleCards)) {
                 // 存在初始化布局信息
                 getDashboardCardList(dashboardRoleCards, resultList);
             } else {
                 // 判断是否存在父级角色以及父级角色中是否存在初始化卡片
-                List<DashboardRoleCard> initLayout = getInitLayout(userDetails.getRoleId());
+                List<DashboardRoleCard> initLayout = getInitLayout(userDetails.roleMergeIds());
                 if (CollectionUtils.isNotEmpty(initLayout)) {
                     getDashboardCardList(initLayout, resultList);
                 }
             }
         }
-        return resultList;
+        return resultList.stream().distinct().collect(Collectors.toList());
     }
 
     /**
@@ -104,30 +108,34 @@ public class DashboardLayoutRepositoryImpl extends BaseRepositoryImpl<DashboardL
      *
      * @return List<DashboardRoleCard>
      */
-    private List<DashboardRoleCard> getInitLayout(Long roleId) {
-        // 查询获取levelPath下所有父级角色Id
-        List<Long> parentRoleList = layoutMapper.selectParentRole(roleId);
-        if (CollectionUtils.isNotEmpty(parentRoleList)) {
-            List<DashboardRoleCard> resultList = roleCardRepository.selectByRoleIds(parentRoleList);
-            Map<Long, List<DashboardRoleCard>> parentRoleCardMap =
-                    resultList.stream().collect(Collectors.toMap(DashboardRoleCard::getRoleId, lst -> {
-                        // 将相同key的数据组装为集合返回
-                        List<DashboardRoleCard> tmpList = new ArrayList<>();
-                        tmpList.add(lst);
-                        return tmpList;
-                    }, (List<DashboardRoleCard> lst1, List<DashboardRoleCard> lst2) -> {
-                        lst1.addAll(lst2);
-                        return lst1;
-                    }));
-            // 取出当前角色的父级角色判断是否存在初始化信息
-            for (Long aLong : parentRoleList) {
-                if (parentRoleCardMap.containsKey(aLong)) {
-                    // 取出第一个存在默认卡片的父级角色数据
-                    return parentRoleCardMap.get(aLong);
+    private List<DashboardRoleCard> getInitLayout(List<Long> roleIds) {
+        List<DashboardRoleCard> initLayouts = new ArrayList<>();
+        for (Long roleId : roleIds) {
+            // 查询获取levelPath下所有父级角色Id
+            List<Long> parentRoleList = layoutMapper.selectParentRole(roleId);
+            if (CollectionUtils.isNotEmpty(parentRoleList)) {
+                List<DashboardRoleCard> resultList = roleCardRepository.selectByRoleIds(parentRoleList);
+                Map<Long, List<DashboardRoleCard>> parentRoleCardMap =
+                        resultList.stream().collect(Collectors.toMap(DashboardRoleCard::getRoleId, lst -> {
+                            // 将相同key的数据组装为集合返回
+                            List<DashboardRoleCard> tmpList = new ArrayList<>();
+                            tmpList.add(lst);
+                            return tmpList;
+                        }, (List<DashboardRoleCard> lst1, List<DashboardRoleCard> lst2) -> {
+                            lst1.addAll(lst2);
+                            return lst1;
+                        }));
+                // 取出当前角色的父级角色判断是否存在初始化信息
+                for (Long aLong : parentRoleList) {
+                    if (parentRoleCardMap.containsKey(aLong)) {
+                        initLayouts.addAll(parentRoleCardMap.get(aLong));
+                        // 取出第一个存在默认卡片的父级角色数据
+                        break;
+                    }
                 }
             }
         }
-        return Collections.emptyList();
+        return initLayouts;
     }
 
     /**

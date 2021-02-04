@@ -1,11 +1,12 @@
 package org.hzero.platform.infra.mapper;
 
-import io.choerodon.mybatis.common.BaseMapper;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 import org.hzero.platform.domain.entity.DashboardLayout;
 import org.hzero.platform.domain.vo.DashboardLayoutVO;
 
-import java.util.List;
+import io.choerodon.mybatis.common.BaseMapper;
 
 /**
  * 工作台配置Mapper
@@ -43,11 +44,11 @@ public interface DashboardLayoutMapper extends BaseMapper<DashboardLayout> {
      * 查询获取当前用户布局信息
      *
      * @param userId   用户Id
-     * @param roleId   角色Id
+     * @param roleIds  角色合并Ids
      * @param tenantId 租户Id
      * @return 当前用户布局信息
      */
-    List<DashboardLayoutVO> selectCurrentLayouts(@Param("userId") Long userId, @Param("roleId") Long roleId, @Param("tenantId") Long tenantId);
+    List<DashboardLayoutVO> selectCurrentLayouts(@Param("userId") Long userId, @Param("roleIds") List<Long> roleIds, @Param("tenantId") Long tenantId);
 
     /**
      * 查询获取租户管理员角色卡片信息

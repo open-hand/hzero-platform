@@ -1,15 +1,18 @@
 package org.hzero.platform.app.service.impl;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.hzero.platform.app.service.DashboardRoleCardService;
+import org.hzero.platform.domain.entity.DashboardLayout;
 import org.hzero.platform.domain.entity.DashboardRoleCard;
+import org.hzero.platform.domain.repository.DashboardLayoutRepository;
 import org.hzero.platform.domain.repository.DashboardRoleCardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 角色卡片表应用服务默认实现
@@ -21,6 +24,8 @@ public class DashboardRoleCardServiceImpl implements DashboardRoleCardService {
 
     @Autowired
     private DashboardRoleCardRepository roleCardRepository;
+    @Autowired
+    private DashboardLayoutRepository dashboardLayoutRepository;
 
     @Transactional(rollbackFor = Exception.class)
     @Override
@@ -44,6 +49,18 @@ public class DashboardRoleCardServiceImpl implements DashboardRoleCardService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void batchRemoveRoleCard(List<DashboardRoleCard> dashboardRoleCards) {
+        List<DashboardLayout> delLayouts = new LinkedList<>();
+        // 清除已经分配到用户层的卡片数据
+        for (DashboardRoleCard dashboardRoleCard : dashboardRoleCards) {
+            List<Long> delRoleIds = roleCardRepository.selectSubRoleIds(dashboardRoleCard.getRoleId(), dashboardRoleCard.getCardId());
+            for (Long delRoleId : delRoleIds) {
+                DashboardLayout layout = new DashboardLayout();
+                layout.setCardId(dashboardRoleCard.getCardId());
+                layout.setRoleId(delRoleId);
+                delLayouts.add(layout);
+            }
+        }
+        dashboardLayoutRepository.batchDelete(delLayouts);
         // 直接删除
         roleCardRepository.batchDeleteByPrimaryKey(dashboardRoleCards);
     }

@@ -1,10 +1,11 @@
 package org.hzero.platform.infra.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 import org.hzero.platform.domain.entity.DashboardRoleCard;
-import io.choerodon.mybatis.common.BaseMapper;
 
-import java.util.List;
+import io.choerodon.mybatis.common.BaseMapper;
 
 /**
  * 角色卡片表Mapper
@@ -47,10 +48,10 @@ public interface DashboardRoleCardMapper extends BaseMapper<DashboardRoleCard> {
     /**
      * 查询获取当前角色下设置的初始化卡片信息
      *
-     * @param roleId 角色Id
+     * @param roleIds 角色合并Ids
      * @return 初始化数据
      */
-    List<DashboardRoleCard> selectCurrentRoleCards(@Param("roleId") Long roleId);
+    List<DashboardRoleCard> selectCurrentRoleCards(@Param("roleIds") List<Long> roleIds);
 
     /**
      * 查询角色租户Id信息
@@ -59,4 +60,14 @@ public interface DashboardRoleCardMapper extends BaseMapper<DashboardRoleCard> {
      * @return 角色租户Id
      */
     Long selectRoleTenant(@Param("roleId") Long roleId);
+
+    /**
+     * 查询获取需要删除的子级角色Id信息
+     * 需排除当前角色的子级角色与该角色存在相同卡片的子级角色Id
+     *
+     * @param delCardRoleId 卡片分配角色Id
+     * @param cardId        卡片Id
+     * @return 该角色的子级角色Id
+     */
+    List<Long> selectSubRoleIds(@Param("roleId") Long delCardRoleId, @Param("cardId") Long cardId);
 }

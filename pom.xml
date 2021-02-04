@@ -10,7 +10,7 @@
         <version>1.4.0.RELEASE</version>
     </parent>
     <artifactId>hzero-platform-saas</artifactId>
-    <version>1.4.4.RELEASE</version>
+    <version>1.4.5.RELEASE</version>
 
     <dependencies>
         <!-- hzero starter -->
@@ -55,6 +55,7 @@
         <dependency>
             <groupId>org.hzero.boot</groupId>
             <artifactId>hzero-boot-platform</artifactId>
+            <version>1.4.4.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.hzero.boot</groupId>
@@ -85,15 +86,6 @@
             <groupId>org.hzero.boot</groupId>
             <artifactId>hzero-boot-api-customize</artifactId>
         </dependency>
-        <!-- 使用 api 客制化时，依赖的项目必须自行引入 tools.jar 热部署时用到，同时，需要在打包时将其打包进去 includeSystemScope=true  -->
-<!--        <dependency>-->
-<!--            <groupId>jdk.tools</groupId>-->
-<!--            <artifactId>jdk.tools</artifactId>-->
-<!--            <version>1.8</version>-->
-<!--            <scope>system</scope>-->
-<!--            <systemPath>${env.JAVA_HOME}/lib/tools.jar</systemPath>-->
-<!--        </dependency>-->
-
         <!-- db -->
         <dependency>
             <groupId>mysql</groupId>

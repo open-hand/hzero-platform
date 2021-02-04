@@ -1,11 +1,12 @@
 package org.hzero.platform.domain.repository;
 
-import io.choerodon.core.domain.Page;
-import io.choerodon.mybatis.pagehelper.domain.PageRequest;
+import java.util.List;
+
 import org.hzero.mybatis.base.BaseRepository;
 import org.hzero.platform.domain.entity.DashboardRoleCard;
 
-import java.util.List;
+import io.choerodon.core.domain.Page;
+import io.choerodon.mybatis.pagehelper.domain.PageRequest;
 
 /**
  * 角色卡片表资源库
@@ -48,10 +49,10 @@ public interface DashboardRoleCardRepository extends BaseRepository<DashboardRol
     /**
      * 查询获取当前角色下设置的初始化卡片信息
      *
-     * @param roleId 角色Id
+     * @param roleIds 角色合并Ids
      * @return 初始化数据
      */
-    List<DashboardRoleCard> selectCurrentRoleCards(Long roleId);
+    List<DashboardRoleCard> selectCurrentRoleCards(List<Long> roleIds);
 
     /**
      * 查询角色租户Id信息
@@ -60,4 +61,13 @@ public interface DashboardRoleCardRepository extends BaseRepository<DashboardRol
      * @return 角色租户Id
      */
     Long selectRoleTenant(Long roleId);
+
+    /**
+     * 查询获取需要删除的子级角色Id信息
+     *
+     * @param delCardRoleId 卡片分配角色Id
+     * @param cardId        卡片Id
+     * @return 该角色的子级角色Id
+     */
+    List<Long> selectSubRoleIds(Long delCardRoleId, Long cardId);
 }

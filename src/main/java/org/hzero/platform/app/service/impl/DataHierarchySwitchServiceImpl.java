@@ -3,6 +3,7 @@ package org.hzero.platform.app.service.impl;
 import io.choerodon.core.oauth.CustomUserDetails;
 import io.choerodon.core.oauth.DetailsHelper;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hzero.boot.platform.data.hierarchy.DataHierarchyValueHandler;
 import org.hzero.core.algorithm.tree.TreeBuilder;
 import org.hzero.core.base.BaseConstants;
 import org.hzero.core.exception.NotLoginException;
@@ -17,6 +18,7 @@ import org.hzero.platform.infra.constant.DataHierarchyDisplayStyle;
 import org.hzero.platform.infra.feign.UserDetailRemoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,14 +33,20 @@ public class DataHierarchySwitchServiceImpl implements DataHierarchySwitchServic
     private DataHierarchyService dataHierarchyService;
     private DataHierarchyRepository dataHierarchyRepository;
     private UserDetailRemoteService userDetailRemoteService;
+    private List<DataHierarchyValueHandler> dataHierarchyValueHandlerList;
 
     @Autowired
     public DataHierarchySwitchServiceImpl(DataHierarchyService dataHierarchyService,
                                           DataHierarchyRepository dataHierarchyRepository,
-                                          UserDetailRemoteService userDetailRemoteService) {
+                                          UserDetailRemoteService userDetailRemoteService,
+                                          @Autowired(required = false) List<DataHierarchyValueHandler> dataHierarchyValueHandlerList) {
         this.dataHierarchyService = dataHierarchyService;
         this.dataHierarchyRepository = dataHierarchyRepository;
         this.userDetailRemoteService = userDetailRemoteService;
+        this.dataHierarchyValueHandlerList = dataHierarchyValueHandlerList;
+        if (CollectionUtils.isNotEmpty(this.dataHierarchyValueHandlerList)) {
+            this.dataHierarchyValueHandlerList.sort(Comparator.comparingInt(DataHierarchyValueHandler::getOrder));
+        }
     }
 
     @Override
@@ -108,6 +116,14 @@ public class DataHierarchySwitchServiceImpl implements DataHierarchySwitchServic
                                        String dataHierarchyCode,
                                        String dataHierarchyValue,
                                        String dataHierarchyMeaning) {
+        if (CollectionUtils.isNotEmpty(this.dataHierarchyValueHandlerList)) {
+            for (DataHierarchyValueHandler dataHierarchyValueHandler : dataHierarchyValueHandlerList) {
+                String handleValue = dataHierarchyValueHandler.valueHandler(DetailsHelper.getUserDetails(), tenantId, dataHierarchyCode, dataHierarchyValue, dataHierarchyMeaning);
+                dataHierarchyValue = StringUtils.hasText(handleValue) ? handleValue : dataHierarchyValue;
+                String handleMeaning = dataHierarchyValueHandler.meaningHandler(DetailsHelper.getUserDetails(), tenantId, dataHierarchyCode, dataHierarchyValue, dataHierarchyMeaning);
+                dataHierarchyMeaning = StringUtils.hasText(handleMeaning) ? handleMeaning : dataHierarchyMeaning;
+            }
+        }
         userDetailRemoteService.storeUserAdditionInfo(TokenUtils.getToken(), dataHierarchyCode, dataHierarchyValue, dataHierarchyMeaning,
                 dataHierarchyRepository.listDataHierarchyChildren(tenantId, dataHierarchyCode)
                         .stream()

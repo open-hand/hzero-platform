@@ -155,7 +155,10 @@
         left join hpfm_dashboard_card_tl hdct ON hdc.id = hdct.id and hdct.lang = #{lang}
         WHERE 1=1
         AND hdl.user_id = #{userId}
-        AND hdl.role_id = #{roleId}
+        AND hdl.role_id IN
+        <foreach collection="roleIds" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
         AND hdl.tenant_id = #{tenantId}
 
     </select>
